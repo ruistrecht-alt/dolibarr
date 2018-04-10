@@ -539,6 +539,15 @@ if (empty($reshook))
 						}
 					}
 
+					// Links with users
+					$salesreps = GETPOST('commercial', 'array');
+					$result = $object->setSalesRep($salesreps);
+					if ($result < 0)
+					{
+						$error++;
+						setEventMessages($object->error, $object->errors, 'errors');
+					}
+
 					// Customer categories association
 					$custcats = GETPOST('custcats', 'array');
 					$result = $object->setCategories($custcats, 'customer');
@@ -667,6 +676,15 @@ if (empty($reshook))
                     setEventMessages($object->error, $object->errors, 'errors');
                   	$error++;
                 }
+
+				// Links with users
+				$salesreps = GETPOST('commercial', 'array');
+				$result = $object->setSalesRep($salesreps);
+				if ($result < 0)
+				{
+					$error++;
+					setEventMessages($object->error, $object->errors, 'errors');
+				}
 
 				// Prevent thirdparty's emptying if a user hasn't rights $user->rights->categorie->lire (in such a case, post of 'custcats' is not defined)
 				if (! $error && !empty($user->rights->categorie->lire))
@@ -1262,7 +1280,7 @@ else
         // Vat is used
         print '<tr><td>'.fieldLabel('VATIsUsed','assujtva_value').'</td>';
         print '<td>';
-        print $form->selectyesno('assujtva_value', GETPOST('assujtva_value','int'), 1);     // Assujeti par defaut en creation
+        print $form->selectyesno('assujtva_value', GETPOSTISSET('assujtva_value')?GETPOST('assujtva_value','int'):1, 1);     // Assujeti par defaut en creation
         print '</td>';
         print '<td class="nowrap">'.fieldLabel('VATIntra','intra_vat').'</td>';
         print '<td class="nowrap">';
@@ -1360,7 +1378,8 @@ else
             print '<tr>';
             print '<td>'.fieldLabel('AllocateCommercial','commercial_id').'</td>';
             print '<td colspan="3" class="maxwidthonsmartphone">';
-            print $form->select_dolusers((! empty($object->commercial_id)?$object->commercial_id:$user->id),'commercial_id',1); // Add current user by default
+			$userlist = $form->select_dolusers('', '', 0, null, 0, '', '', 0, 0, 0, '', 0, '', '', 0, 1);
+            print $form->multiselectarray('commercial', $userlist, GETPOST('commercial', 'array'), null, null, null, null, "90%");
             print '</td></tr>';
         }
 
@@ -1624,6 +1643,7 @@ else
             print '<input type="hidden" name="action" value="update">';
             print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
             print '<input type="hidden" name="socid" value="'.$object->id.'">';
+            print '<input type="hidden" name="entity" value="'.$object->entity.'">';
             if ($modCodeClient->code_auto || $modCodeFournisseur->code_auto) print '<input type="hidden" name="code_auto" value="1">';
 
 
@@ -1930,6 +1950,16 @@ else
             // Capital
             print '<tr><td>'.fieldLabel('Capital','capital').'</td>';
 	        print '<td colspan="3"><input type="text" name="capital" id="capital" size="10" value="'.$object->capital.'"> <font class="hideonsmartphone">'.$langs->trans("Currency".$conf->currency).'</font></td></tr>';
+
+			// Assign a Name
+            print '<tr>';
+            print '<td>'.fieldLabel('AllocateCommercial','commercial_id').'</td>';
+            print '<td colspan="3" class="maxwidthonsmartphone">';
+			$userlist = $form->select_dolusers('', '', 0, null, 0, '', '', 0, 0, 0, '', 0, '', '', 0, 1);
+			$arrayselected = GETPOST('commercial', 'array');
+			if (empty($arrayselected)) $arrayselected = $object->getSalesRepresentatives($user, 1);
+            print $form->multiselectarray('commercial', $userlist, $arrayselected, null, null, null, null, "90%");
+            print '</td></tr>';
 
             // Default language
             if (! empty($conf->global->MAIN_MULTILANGS))

@@ -753,7 +753,7 @@ class CMailFile
                     $domainName = $conf->global->MAIN_MAIL_EMAIL_DKIM_DOMAIN;
                     $selector = $conf->global->MAIN_MAIL_EMAIL_DKIM_SELECTOR;
                     $signer = new Swift_Signers_DKIMSigner($privateKey, $domainName, $selector);
-                    $this->message->attachSigner($signer);
+                    $this->message->attachSigner($signer->ignoreHeader('Return-Path'));
                 }
 
                 if (! empty($conf->global->MAIN_MAIL_DEBUG)) {
@@ -776,7 +776,8 @@ class CMailFile
 					dol_syslog("CMailFile::sendfile: mail end error=".$this->error, LOG_ERR);
 					$res=false;
 				} else {
-					$this->error = sprintf ("Sent %d messages\n", $result);
+                    $this->error = $langs->trans("SentXXXmessages", $result);
+					$this->errors[] = $langs->trans("SentXXXmessages", $result);
 				}
 			}
 			else
